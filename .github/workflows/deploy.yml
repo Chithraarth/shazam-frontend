@@ -2,7 +2,7 @@ name: Build and push shazam-frontend image
 
 on:
   push:
-    branches: [dev, uat, prod]
+    branches: [prod]
 
 jobs:
   build-and-push:
