@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, uat, prod]
+  pull_request:
+    branches: [dev, uat, prod]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm install
+
+      - run: npm run typecheck
+
+      - name: Build
+        env:
+          PORT: 5173
+          BASE_PATH: /
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_CLERK_PROXY_URL: ${{ secrets.VITE_CLERK_PROXY_URL }}
+          VITE_PREVIEW_MODE: ${{ secrets.VITE_PREVIEW_MODE }}
+        run: npm run build
+
+      - name: Build Docker image
+        run: docker build -t shazam-frontend:ci .
