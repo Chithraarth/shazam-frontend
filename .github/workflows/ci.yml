@@ -25,8 +25,6 @@ jobs:
         env:
           PORT: 5173
           BASE_PATH: /
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
-          VITE_CLERK_PROXY_URL: ${{ secrets.VITE_CLERK_PROXY_URL }}
           VITE_PREVIEW_MODE: ${{ secrets.VITE_PREVIEW_MODE }}
         run: npm run build
 
