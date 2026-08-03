@@ -1,15 +1,12 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { Home, History as HistoryIcon, LogOut, User } from "lucide-react";
-import { useClerk, useUser } from "@clerk/react";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
-
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { signOut, user } = useAuth();
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-background text-foreground dark">
@@ -20,11 +17,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-3">
           {user && (
             <span className="text-xs text-muted-foreground hidden sm:block truncate max-w-[140px]">
-              {user.primaryEmailAddress?.emailAddress}
+              {user.email}
             </span>
           )}
           <button
-            onClick={() => signOut({ redirectUrl: basePath || "/" })}
+            onClick={() => signOut()}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <LogOut className="w-4 h-4" />
