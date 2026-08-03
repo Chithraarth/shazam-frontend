@@ -5,8 +5,6 @@ WORKDIR /app
 COPY package.json package-lock.json* .npmrc* ./
 RUN npm install
 COPY . .
-ARG VITE_CLERK_PUBLISHABLE_KEY
-ARG VITE_CLERK_PROXY_URL
 ARG VITE_PREVIEW_MODE
 ENV PORT=5173
 ENV BASE_PATH=/

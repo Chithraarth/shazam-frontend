@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useUser } from "@clerk/react";
 import { motion } from "framer-motion";
 import { CheckCircle2, Film, Sparkles, Globe, Clock, ShieldCheck, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
+import { auth } from "@/lib/firebase";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -16,16 +17,19 @@ const FEATURES = [
 ];
 
 export default function Purchase() {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
     setLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch(`${basePath}/api/stripe/checkout`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Checkout failed");
@@ -53,7 +57,7 @@ export default function Purchase() {
             <span className="bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-transparent">Unlock Videofy</span>
           </h1>
           {user && (
-            <p className="text-sm text-muted-foreground">Signed in as {user.primaryEmailAddress?.emailAddress}</p>
+            <p className="text-sm text-muted-foreground">Signed in as {user.email}</p>
           )}
         </div>
 
