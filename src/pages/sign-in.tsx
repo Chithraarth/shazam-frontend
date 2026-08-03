@@ -77,19 +77,25 @@ function PasswordInput({
 }
 
 function PhonePanel() {
-  const { sendPhoneOtp, confirmPhoneOtp } = useAuth();
+  const { renderRecaptcha, sendPhoneOtp, confirmPhoneOtp } = useAuth();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
   const [loading, setLoading] = useState<"send" | "verify" | null>(null);
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+  const [recaptchaReady, setRecaptchaReady] = useState(false);
   const containerId = useRef(`recaptcha-container-${Math.random().toString(36).slice(2)}`);
   const { secondsLeft, start } = useResendTimer();
+
+  useEffect(() => {
+    renderRecaptcha(containerId.current)
+      .then(() => setRecaptchaReady(true))
+      .catch(() => {});
+  }, [renderRecaptcha]);
 
   const handleSend = async () => {
     setLoading("send");
     try {
-      const result = await sendPhoneOtp(phone, containerId.current);
+      const result = await sendPhoneOtp(phone);
       setConfirmation(result);
       start();
       toast({ title: "Code sent", description: `We texted a code to ${phone}` });
@@ -115,7 +121,6 @@ function PhonePanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div id={containerId.current} ref={recaptchaContainerRef} />
       {!confirmation ? (
         <>
           <div>
@@ -129,10 +134,11 @@ function PhonePanel() {
               placeholder="+1 555 123 4567"
             />
           </div>
+          <div id={containerId.current} className="flex justify-center" />
           <button
             type="button"
             onClick={handleSend}
-            disabled={loading !== null || !phone}
+            disabled={loading !== null || !phone || !recaptchaReady}
             className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2.5 mt-1 transition-colors disabled:opacity-60"
           >
             {loading === "send" && <Loader2 className="w-4 h-4 animate-spin" />}
