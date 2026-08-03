@@ -1,11 +1,9 @@
-import { useClerk } from "@clerk/react";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Film, Sparkles, ShieldCheck, Zap } from "lucide-react";
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-
 export default function Landing() {
-  const { openSignIn, openSignUp } = useClerk();
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground dark flex flex-col">
@@ -55,13 +53,13 @@ export default function Landing() {
           className="flex flex-col sm:flex-row gap-3 w-full max-w-sm"
         >
           <button
-            onClick={() => openSignUp()}
+            onClick={() => setLocation("/sign-up")}
             className="flex-1 rounded-xl bg-primary px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
           >
             Start Scanning Free
           </button>
           <button
-            onClick={() => openSignIn()}
+            onClick={() => setLocation("/sign-in")}
             className="flex-1 rounded-xl border border-border bg-card/50 px-6 py-3.5 text-base font-semibold text-foreground hover:bg-card transition-all active:scale-95"
           >
             Sign In
