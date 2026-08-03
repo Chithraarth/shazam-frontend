@@ -20,7 +20,8 @@ type AuthContextValue = {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
-  sendPhoneOtp: (phoneNumber: string, recaptchaContainerId: string) => Promise<ConfirmationResult>;
+  renderRecaptcha: (recaptchaContainerId: string) => Promise<void>;
+  sendPhoneOtp: (phoneNumber: string) => Promise<ConfirmationResult>;
   confirmPhoneOtp: (confirmation: ConfirmationResult, code: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -54,11 +55,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUpWithEmail: async (email, password) => {
       await createUserWithEmailAndPassword(auth, email, password);
     },
-    sendPhoneOtp: async (phoneNumber, recaptchaContainerId) => {
+    renderRecaptcha: async (recaptchaContainerId) => {
       if (!recaptchaRef.current) {
         recaptchaRef.current = new RecaptchaVerifier(auth, recaptchaContainerId, {
-          size: "invisible",
+          size: "normal",
         });
+        await recaptchaRef.current.render();
+      }
+    },
+    sendPhoneOtp: async (phoneNumber) => {
+      if (!recaptchaRef.current) {
+        throw new Error("Recaptcha not ready yet");
       }
       return signInWithPhoneNumber(auth, phoneNumber, recaptchaRef.current);
     },
