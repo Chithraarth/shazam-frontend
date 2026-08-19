@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, MonitorPlay, Film, Tv, Users, Globe, Music, Info, RefreshCw, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, MonitorPlay, Film, Tv, Users, Globe, Music, Info, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,64 +97,6 @@ export default function Result() {
     creatorHandle?: string | null;
     identificationClues?: string | null;
   };
-
-  if ((lastResult as { locked?: boolean }).locked && found) {
-    const stage = getRecognitionStage(confidence);
-    return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center p-6 text-center">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="max-w-md w-full space-y-6"
-        >
-          <div className="flex justify-center">
-            <ConfidenceRing confidence={confidence} />
-          </div>
-          <Badge variant="outline" className={stage.className}>
-            {stage.label}
-          </Badge>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
-              We Found Your Match!
-            </h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Our AI identified this video with {confidence}% confidence.
-            </p>
-          </div>
-
-          <Card className="border-primary/30 bg-primary/5">
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2 select-none" aria-hidden>
-                <div className="mx-auto h-7 w-3/4 rounded bg-white/10 blur-[6px]" />
-                <div className="mx-auto h-4 w-1/2 rounded bg-white/10 blur-[6px]" />
-                <div className="mx-auto h-3 w-2/3 rounded bg-white/5 blur-[6px]" />
-              </div>
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Lock className="h-4 w-4 text-primary" />
-                Title, cast, platform &amp; details are hidden
-              </div>
-              <Button
-                className="w-full font-semibold"
-                size="lg"
-                onClick={() => setLocation("/purchase")}
-              >
-                Unlock the Answer — ₹799/year
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                Unlimited reveals while subscribed. Cancel anytime.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Button variant="ghost" onClick={handleTryAgain} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Scan Something Else
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
 
   if (!found) {
     return (

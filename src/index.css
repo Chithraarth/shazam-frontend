@@ -178,3 +178,11 @@
     color-scheme: dark;
   }
 }
+
+/* Firebase's automatic reCAPTCHA protection renders a floating badge fixed to
+   a page corner, which reads as a stray popup. We hide it and show the
+   required Google disclosure text inline near the relevant form fields
+   instead (see PhonePanel / AuthForm in sign-in.tsx). */
+.grecaptcha-badge {
+  visibility: hidden;
+}

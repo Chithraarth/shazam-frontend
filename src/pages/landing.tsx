@@ -36,7 +36,7 @@ export default function Landing() {
           {[
             { icon: Sparkles, label: "AI-Powered", desc: "Gemini Vision AI" },
             { icon: Zap, label: "Instant Results", desc: "Under 3 seconds" },
-            { icon: ShieldCheck, label: "Just ₹799/year", desc: "Cancel anytime" },
+            { icon: ShieldCheck, label: "50 Scans for ₹200", desc: "No subscription" },
           ].map(({ icon: Icon, label, desc }) => (
             <div key={label} className="flex flex-col items-center gap-1.5 rounded-xl border border-border/50 bg-card/30 p-4 backdrop-blur">
               <Icon className="w-5 h-5 text-primary" />
@@ -67,9 +67,29 @@ export default function Landing() {
         </motion.div>
 
         <p className="mt-6 text-xs text-muted-foreground">
-          Scan for free · Unlock answers for just ₹799/year
+          A few scans free · Buy 50 more for ₹200 anytime
         </p>
       </div>
+
+      <footer className="relative z-10 border-t border-border/50 px-6 py-10">
+        <div className="mx-auto max-w-lg text-center sm:text-left">
+          <h2 className="text-xs font-bold tracking-widest text-muted-foreground mb-3">LEGAL</h2>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+            <button
+              onClick={() => setLocation("/terms")}
+              className="text-sm text-foreground/80 hover:text-foreground transition-colors text-left"
+            >
+              Terms of Service
+            </button>
+            <button
+              onClick={() => setLocation("/privacy")}
+              className="text-sm text-foreground/80 hover:text-foreground transition-colors text-left"
+            >
+              Privacy Policy
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

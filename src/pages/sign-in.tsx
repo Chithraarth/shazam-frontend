@@ -2,14 +2,31 @@ import { useState, useEffect, useRef, FormEvent } from "react";
 import { Link } from "wouter";
 import { Film, Loader2, Eye, EyeOff } from "lucide-react";
 import type { ConfirmationResult } from "firebase/auth";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { useAuth } from "@/lib/auth-context";
-import { toast } from "@/hooks/use-toast";
+import { CountryCodeSelect } from "@/components/country-code-select";
+import { DEFAULT_COUNTRY_ISO2 } from "@/lib/countries";
+
+function guessDefaultCountry(): string {
+  try {
+    const region = new Intl.Locale(navigator.language).maximize().region;
+    return region ?? DEFAULT_COUNTRY_ISO2;
+  } catch {
+    return DEFAULT_COUNTRY_ISO2;
+  }
+}
 
 const RESEND_SECONDS = 60;
 
-function firebaseErrorMessage(err: unknown): string {
+// Returns null for errors that shouldn't be surfaced to the user (e.g. they
+// simply closed the Google popup).
+function firebaseErrorMessage(err: unknown): string | null {
   const code = (err as { code?: string })?.code ?? "";
   switch (code) {
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+    case "auth/user-cancelled":
+      return null;
     case "auth/invalid-credential":
     case "auth/wrong-password":
     case "auth/user-not-found":
@@ -28,6 +45,23 @@ function firebaseErrorMessage(err: unknown): string {
       return "That code has expired. Please request a new one.";
     case "auth/too-many-requests":
       return "Too many attempts. Please try again later.";
+    case "auth/network-request-failed":
+      return "Network error. Check your connection and try again.";
+    case "auth/popup-blocked":
+      return "Your browser blocked the sign-in popup. Please allow popups for this site and try again.";
+    case "auth/unauthorized-domain":
+      return "This domain isn't authorized for sign-in. Please contact support.";
+    case "auth/operation-not-allowed":
+      return "This sign-in method isn't enabled for this app yet.";
+    case "auth/account-exists-with-different-credential":
+      return "An account already exists with this email using a different sign-in method.";
+    case "auth/quota-exceeded":
+      return "SMS quota exceeded. Please try again later.";
+    case "auth/captcha-check-failed":
+    case "auth/missing-recaptcha-token":
+      return "reCAPTCHA verification failed. Please refresh the page and try again.";
+    case "auth/missing-verification-code":
+      return "Please enter the verification code.";
     default:
       return "Something went wrong. Please try again.";
   }
@@ -76,13 +110,48 @@ function PasswordInput({
   );
 }
 
+function FormMessage({ error, notice }: { error: string | null; notice: string | null }) {
+  if (error) return <p className="text-sm text-red-400 text-center">{error}</p>;
+  if (notice) return <p className="text-sm text-green-400 text-center">{notice}</p>;
+  return null;
+}
+
+function RecaptchaDisclosure() {
+  return (
+    <p className="text-[11px] leading-snug text-slate-500 text-center">
+      This site is protected by reCAPTCHA and the Google{" "}
+      <a
+        href="https://policies.google.com/privacy"
+        target="_blank"
+        rel="noreferrer"
+        className="underline hover:text-slate-300"
+      >
+        Privacy Policy
+      </a>{" "}
+      and{" "}
+      <a
+        href="https://policies.google.com/terms"
+        target="_blank"
+        rel="noreferrer"
+        className="underline hover:text-slate-300"
+      >
+        Terms of Service
+      </a>{" "}
+      apply.
+    </p>
+  );
+}
+
 function PhonePanel() {
   const { renderRecaptcha, sendPhoneOtp, confirmPhoneOtp } = useAuth();
-  const [phone, setPhone] = useState("");
+  const [countryIso2, setCountryIso2] = useState(guessDefaultCountry);
+  const [nationalNumber, setNationalNumber] = useState("");
   const [code, setCode] = useState("");
   const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
   const [loading, setLoading] = useState<"send" | "verify" | null>(null);
   const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const containerId = useRef(`recaptcha-container-${Math.random().toString(36).slice(2)}`);
   const { secondsLeft, start } = useResendTimer();
 
@@ -92,15 +161,23 @@ function PhonePanel() {
       .catch(() => {});
   }, [renderRecaptcha]);
 
-  const handleSend = async () => {
+  const handleSend = async (isResend = false) => {
+    setError(null);
+    setNotice(null);
+    const parsed = parsePhoneNumberFromString(nationalNumber, countryIso2 as never);
+    if (!parsed?.isValid()) {
+      setError("Please enter a valid phone number for the selected country.");
+      return;
+    }
     setLoading("send");
     try {
-      const result = await sendPhoneOtp(phone);
+      const result = await sendPhoneOtp(parsed.number);
       setConfirmation(result);
       start();
-      toast({ title: "Code sent", description: `We texted a code to ${phone}` });
+      setNotice(isResend ? "OTP resent successfully." : "OTP sent successfully.");
     } catch (err) {
-      toast({ title: "Couldn't send code", description: firebaseErrorMessage(err), variant: "destructive" });
+      const message = firebaseErrorMessage(err);
+      if (message) setError(message);
     } finally {
       setLoading(null);
     }
@@ -109,11 +186,14 @@ function PhonePanel() {
   const handleVerify = async (e: FormEvent) => {
     e.preventDefault();
     if (!confirmation) return;
+    setError(null);
+    setNotice(null);
     setLoading("verify");
     try {
       await confirmPhoneOtp(confirmation, code);
     } catch (err) {
-      toast({ title: "Verification failed", description: firebaseErrorMessage(err), variant: "destructive" });
+      const message = firebaseErrorMessage(err);
+      if (message) setError(message);
     } finally {
       setLoading(null);
     }
@@ -125,20 +205,25 @@ function PhonePanel() {
         <>
           <div>
             <label className="text-sm text-slate-300 font-medium block mb-1.5">Phone number</label>
-            <input
-              type="tel"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-lg bg-white/5 border border-white/10 text-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
-              placeholder="+1 555 123 4567"
-            />
+            <div className="flex gap-2">
+              <CountryCodeSelect value={countryIso2} onChange={setCountryIso2} />
+              <input
+                type="tel"
+                required
+                value={nationalNumber}
+                onChange={(e) => setNationalNumber(e.target.value)}
+                className="flex-1 min-w-0 rounded-lg bg-white/5 border border-white/10 text-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+                placeholder="555 123 4567"
+              />
+            </div>
           </div>
           <div id={containerId.current} className="flex justify-center" />
+          <RecaptchaDisclosure />
+          <FormMessage error={error} notice={notice} />
           <button
             type="button"
-            onClick={handleSend}
-            disabled={loading !== null || !phone || !recaptchaReady}
+            onClick={() => handleSend(false)}
+            disabled={loading !== null || !nationalNumber || !recaptchaReady}
             className="w-full flex items-center justify-center gap-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2.5 mt-1 transition-colors disabled:opacity-60"
           >
             {loading === "send" && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -159,6 +244,7 @@ function PhonePanel() {
               placeholder="123456"
             />
           </div>
+          <FormMessage error={error} notice={notice} />
           <button
             type="submit"
             disabled={loading !== null || !code}
@@ -169,7 +255,7 @@ function PhonePanel() {
           </button>
           <button
             type="button"
-            onClick={handleSend}
+            onClick={() => handleSend(true)}
             disabled={secondsLeft > 0 || loading !== null}
             className="text-sm text-indigo-400 hover:text-indigo-300 disabled:text-slate-500 disabled:cursor-not-allowed"
           >
@@ -187,15 +273,18 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState<"google" | "email" | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const isSignUp = mode === "sign-up";
 
   const handleGoogle = async () => {
+    setError(null);
     setLoading("google");
     try {
       await signInWithGoogle();
     } catch (err) {
-      toast({ title: "Sign in failed", description: firebaseErrorMessage(err), variant: "destructive" });
+      const message = firebaseErrorMessage(err);
+      if (message) setError(message);
     } finally {
       setLoading(null);
     }
@@ -203,6 +292,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
 
   const handleEmailSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading("email");
     try {
       if (isSignUp) {
@@ -211,7 +301,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         await signInWithEmail(email, password);
       }
     } catch (err) {
-      toast({ title: "Authentication failed", description: firebaseErrorMessage(err), variant: "destructive" });
+      const message = firebaseErrorMessage(err);
+      if (message) setError(message);
     } finally {
       setLoading(null);
     }
@@ -247,6 +338,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         Continue with Google
       </button>
 
+      {error && <div className="mb-4"><FormMessage error={error} notice={null} /></div>}
+
       <div className="flex items-center gap-3 mb-4">
         <div className="flex-1 h-px bg-white/10" />
         <span className="text-xs text-slate-500">or</span>
@@ -258,7 +351,10 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           <button
             key={m}
             type="button"
-            onClick={() => setMethod(m)}
+            onClick={() => {
+              setError(null);
+              setMethod(m);
+            }}
             className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors capitalize ${
               method === m ? "bg-indigo-500 text-white" : "text-slate-400 hover:text-slate-200"
             }`}
@@ -293,6 +389,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             {loading === "email" && <Loader2 className="w-4 h-4 animate-spin" />}
             {isSignUp ? "Create account" : "Sign in"}
           </button>
+          <RecaptchaDisclosure />
         </form>
       ) : (
         <PhonePanel />
