@@ -10,8 +10,9 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Result from "@/pages/result";
 import History from "@/pages/history";
-import Purchase from "@/pages/purchase";
 import Landing from "@/pages/landing";
+import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
 import { SignInPage, SignUpPage } from "@/pages/sign-in";
 import { AppLayout } from "@/components/app-layout";
 
@@ -23,7 +24,7 @@ const PREVIEW_MODE = import.meta.env.DEV && import.meta.env.VITE_PREVIEW_MODE !=
 
 function useUserAccess() {
   const { isSignedIn, isLoaded } = useAuth();
-  const { data, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ["user-me"],
     queryFn: async () => {
       const token = await auth.currentUser?.getIdToken();
@@ -31,18 +32,17 @@ function useUserAccess() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) return null;
-      return res.json() as Promise<{ id: string; email: string | null; hasActiveSubscription: boolean }>;
+      return res.json() as Promise<{ id: string; email: string | null }>;
     },
     enabled: isSignedIn === true,
     staleTime: 30_000,
   });
   if (PREVIEW_MODE) {
-    return { isLoaded: true, isSignedIn: true, hasActiveSubscription: true };
+    return { isLoaded: true, isSignedIn: true };
   }
   return {
     isLoaded: isLoaded && (!isSignedIn || !isLoading),
     isSignedIn: isSignedIn ?? false,
-    hasActiveSubscription: data?.hasActiveSubscription ?? false,
   };
 }
 
@@ -80,38 +80,6 @@ function SignedInRoute({ children }: { children: React.ReactNode }) {
   return <AppLayout>{children}</AppLayout>;
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn, hasActiveSubscription } = useUserAccess();
-
-  if (!isLoaded) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) return <Redirect to="/sign-in" />;
-  if (!hasActiveSubscription) return <Redirect to="/purchase" />;
-  return <AppLayout>{children}</AppLayout>;
-}
-
-function PurchaseRoute() {
-  const { isLoaded, isSignedIn, hasActiveSubscription } = useUserAccess();
-
-  if (!isLoaded) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isSignedIn) return <Redirect to="/sign-in" />;
-  if (hasActiveSubscription) return <Redirect to="/" />;
-  return <Purchase />;
-}
-
 function AuthQueryClientCacheInvalidator() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -138,7 +106,8 @@ function AppRoutes() {
             <Route path="/" component={HomeRedirect} />
             <Route path="/sign-in" component={SignInPage} />
             <Route path="/sign-up" component={SignUpPage} />
-            <Route path="/purchase" component={PurchaseRoute} />
+            <Route path="/terms" component={Terms} />
+            <Route path="/privacy" component={Privacy} />
             <Route path="/result">
               {() => (
                 <SignedInRoute>
@@ -148,9 +117,9 @@ function AppRoutes() {
             </Route>
             <Route path="/history">
               {() => (
-                <ProtectedRoute>
+                <SignedInRoute>
                   <History />
-                </ProtectedRoute>
+                </SignedInRoute>
               )}
             </Route>
             <Route component={NotFound} />
