@@ -87,6 +87,12 @@ export default function Landing() {
             >
               Privacy Policy
             </button>
+            <button
+              onClick={() => setLocation("/delete-account")}
+              className="text-sm text-foreground/80 hover:text-foreground transition-colors text-left"
+            >
+              Delete Account
+            </button>
           </div>
         </div>
       </footer>

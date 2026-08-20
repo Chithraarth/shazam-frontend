@@ -13,6 +13,7 @@ import History from "@/pages/history";
 import Landing from "@/pages/landing";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
+import DeleteAccount from "@/pages/delete-account";
 import { SignInPage, SignUpPage } from "@/pages/sign-in";
 import { AppLayout } from "@/components/app-layout";
 
@@ -108,6 +109,7 @@ function AppRoutes() {
             <Route path="/sign-up" component={SignUpPage} />
             <Route path="/terms" component={Terms} />
             <Route path="/privacy" component={Privacy} />
+            <Route path="/delete-account" component={DeleteAccount} />
             <Route path="/result">
               {() => (
                 <SignedInRoute>
