@@ -193,7 +193,7 @@ const PRIVACY: { title: string; body: string; icon: ReactNode }[] = [
 const FAQ = [
   { q: "What can Videofy identify?", a: "Movies, web series and TV episodes, and the creators behind Instagram Reels and YouTube Shorts — in any language." },
   { q: "What counts as a scan?", a: "One scan is one identification, found or not. If something fails on our side — or the scan never reaches us — the scan is given back." },
-  { q: "Is there a free trial?", a: "No. Scans come in one-time packs of 50 for ₹499, with no subscription. Unused scans never expire." },
+  { q: "Is there a free trial?", a: "No. Scans come in one-time packs of 30 for ₹499, with no subscription. Unused scans never expire." },
   { q: "How does Scan background work?", a: "Start it in Videofy, open the app that’s playing the video, and Videofy watches the screen for 15 seconds. The answer arrives as a notification." },
   { q: "Do my scans work on both phones?", a: "Yes. Your scans belong to your account, so a pack bought on Android works on your iPhone too, and the other way round." },
 ];
@@ -336,9 +336,9 @@ export default function Landing() {
             <div style={{ flex: "1 1 420px", display: "flex", justifyContent: "center" }}>
               <div style={{ width: "100%", maxWidth: 460, borderRadius: 32, overflow: "hidden", boxShadow: "var(--shadow)" }}>
                 <div style={{ background: "var(--grad)", padding: 32, color: "#fff", position: "relative" }}>
-                  <span className="vl-sticker" style={{ position: "absolute", right: 24, top: 28, transform: "rotate(4deg)" }}>≈ ₹10 / SCAN</span>
+                  <span className="vl-sticker" style={{ position: "absolute", right: 24, top: 28, transform: "rotate(4deg)" }}>≈ ₹17 / SCAN</span>
                   <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: ".14em" }}>ONE-TIME PACK</div>
-                  <div className="vl-dsp" style={{ fontWeight: 800, fontSize: 96, lineHeight: 1, marginTop: 10 }}>50</div>
+                  <div className="vl-dsp" style={{ fontWeight: 800, fontSize: 96, lineHeight: 1, marginTop: 10 }}>30</div>
                   <div className="vl-dsp" style={{ fontWeight: 700, fontSize: 26 }}>scans</div>
                 </div>
                 <div style={{ background: "var(--bg)", padding: "28px 32px 32px", display: "flex", flexDirection: "column", gap: 14 }}>

@@ -50,7 +50,7 @@ export default function Terms() {
             <h2>4. Scan credits and purchases</h2>
             <p>
               New accounts receive a limited number of free scans. Once used up, you can purchase
-              additional scan packs (currently 50 scans per pack) through Google Play Billing.
+              additional scan packs (currently 30 scans per pack) through Google Play Billing.
               Every scan attempt uses one credit, whether or not the App successfully identifies
               the content — because identification uses a paid AI service regardless of outcome.
             </p>
