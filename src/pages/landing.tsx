@@ -330,7 +330,7 @@ export default function Landing() {
           <div className="vl-wrap vl-split" style={{ gap: 56 }}>
             <div style={{ flex: "1 1 380px", minWidth: 0 }}>
               <p className="vl-kick">Pricing</p>
-              <h2 className="vl-h2">Pay once. <span className="vl-gt">Scan 50 times.</span></h2>
+              <h2 className="vl-h2">Pay once. <span className="vl-gt">Scan 30 times.</span></h2>
               <p className="vl-lead">No subscription and no renewals. Buy a pack when you need it — your scans never expire.</p>
             </div>
             <div style={{ flex: "1 1 420px", display: "flex", justifyContent: "center" }}>

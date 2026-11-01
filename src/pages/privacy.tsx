@@ -76,7 +76,7 @@ export default function Privacy() {
                 <strong>Firebase (Google)</strong> — handles sign-in and authentication;
               </li>
               <li>
-                <strong>Google Play Billing</strong> — processes scan-pack purchases;
+                <strong>Google Play Billing and the Apple App Store</strong> — process scan-pack purchases;
               </li>
             </ul>
             <p>We do not sell your personal information to anyone.</p>
